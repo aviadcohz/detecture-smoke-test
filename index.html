@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Detecture Smoke Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --fg:#1b1f27; --muted:#5c6473; --line:#dfe3ea;
+  --accent:#3b6fe0; --accent-soft:#e7eefc; --hl:#eef2fb;
+  --display:"Space Grotesk","IBM Plex Sans",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151b; --surface:#1a1e26; --fg:#e8ebf1; --muted:#9aa3b2; --line:#2b313c;
+  --accent:#7ea2ff; --accent-soft:#1f2a44; --hl:#222a3a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151b; --surface:#1a1e26; --fg:#e8ebf1; --muted:#9aa3b2; --line:#2b313c;
+  --accent:#7ea2ff; --accent-soft:#1f2a44; --hl:#222a3a; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 16px 72px;display:grid;gap:26px}
+header{display:grid;gap:14px}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:600 clamp(26px,4vw,40px)/1.1 var(--display);margin:0;text-wrap:balance}
+.lede{max-width:78ch;color:var(--muted);margin:0}
+.lede b{color:var(--fg);font-weight:600}
+.stats{display:flex;flex-wrap:wrap;gap:10px 32px;font-variant-numeric:tabular-nums}
+.stat{display:grid;gap:2px}
+.stat .v{font:600 24px/1.1 var(--display)}
+.stat .k{font-size:12px;color:var(--muted)}
+.bar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);
+  padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.bar label{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
+input[type=search],select{font:14px var(--body);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+input[type=search]{width:min(260px,100%)}
+.chip{font:500 13px/1 var(--body);padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.count{font:500 13px var(--mono);color:var(--muted);margin-left:auto}
+.grid{display:grid;gap:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;min-width:0}
+.card-h{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between}
+.id{font:500 13px/1.3 var(--mono)}
+.pill{font:500 12px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-variant-numeric:tabular-nums}
+.meta{display:flex;gap:8px;flex-wrap:wrap}
+.panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ol.regs li.miss{opacity:.5}
+ol.regs li.miss .sw{background:var(--muted)!important}
+body.noref .panels{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.noref figure.ref{display:none}
+figure{margin:0;display:grid;gap:8px;align-content:start;min-width:0}
+figure img,figure canvas{width:100%;height:auto;display:block;border-radius:8px;background:var(--line);aspect-ratio:var(--ar)}
+figure canvas{cursor:crosshair}
+figcaption{font:600 12px/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+figure.det figcaption{color:var(--accent)}
+ol.regs{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+ol.regs li{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:start;font-size:13.5px;line-height:1.4;
+  padding:5px 6px;border-radius:6px;cursor:default}
+ol.regs li.on{background:var(--hl)}
+.sw{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 11px/1 var(--mono);color:#fff;
+  text-shadow:0 0 2px rgba(0,0,0,.6);margin-top:-1px}
+.nm{font-weight:600}
+.ar{font:12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.note{font-size:12px;color:var(--muted)}
+footer{color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+mark{background:#fde68a;color:inherit;border-radius:2px}
+@media (max-width:820px){.panels,body.noref .panels{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Detecture · sub-semantic smoke test</div>
+    <h1>Detecture on hard sub-semantic cases</h1>
+    <p class="lede">A small set of test images, each built around one hard case for sub-semantic segmentation:
+      lighting changes, gradual transitions, disconnected islands, scale, orientation, and scenes with many textures. For each
+      image, Detecture decides by itself how many texture regions there are, writes a description of each one, and segments
+      it from that description. It gets no region count and no annotation. <b>Hover or tap a description</b> to light up its region,
+      or hover the overlay to find the description of a pixel.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  
+
+  <main class="grid" id="grid"></main>
+
+  <footer>Model: Detecture (Qwen3-VL-8B + SAM 3, checkpoint epoch 23), same count-free prompt for every image, one image at a time. The model sees each image resized to 1008×1008, and masks are mapped back to the original aspect ratio.
+    Descriptions are the model's own generated text; region colours are numbered in the order the model wrote them. Grey = pixels
+    the model left unassigned.</footer>
+</div>
+<script>
+const CARDS=[{"id": "different_lighting", "name": "Different lighting", "w": 467, "h": 412, "k": 2, "p": [["concrete wall, rough gray surface with visible aggregate and vertical seams, left side", 98.0], ["concrete wall, darker gray surface with subtle grain and vertical seams, right side", 0.9]], "g": [], "u": 1.1}, {"id": "different_lighting2", "name": "Different lighting2", "w": 900, "h": 605, "k": 2, "p": [["sphere, perforated surface with circular holes and rough grain, foreground", 50.9], ["background, smooth dark surface with subtle speckles, surrounding sphere", 47.5]], "g": [], "u": 1.6}, {"id": "gradual_transition", "name": "Gradual transition", "w": 465, "h": 412, "k": 2, "p": [["sand, fine granular beige surface with uniform smoothness, occupying left side", 66.5], ["gravel, coarse aggregate of varied brown and gray stones, occupying right side", 32.6]], "g": [], "u": 1.0}, {"id": "disconnected_islands", "name": "Disconnected islands", "w": 461, "h": 412, "k": 3, "p": [["rust, rough reddish-brown corroded surface with irregular patches, top-left", 65.3], ["rust, rough reddish-brown corroded surface with irregular patches, top-right", 0.6], ["rust, rough reddish-brown corroded surface with irregular patches, bottom-center", 32.0]], "g": [], "u": 2.1}, {"id": "scale", "name": "Scale", "w": 900, "h": 496, "k": 4, "p": [["stone wall, rough irregularly shaped beige stones with mortar joints, left side foreground", 42.7], ["concrete panel, smooth uniform gray surface, center vertical section", 19.8], ["brick wall, small uniform rectangular beige bricks with mortar joints, right side", 6.5], ["tree, tall slender brown trunks with green foliage, background", 28.3]], "g": [], "u": 2.7}, {"id": "orientation", "name": "Orientation", "w": 900, "h": 763, "k": 2, "p": [["woven basket, dense interlaced black lines forming geometric pattern, top-left area", 94.0], ["woven basket, dense interlaced black lines forming geometric pattern, bottom-right area", 5.6]], "g": [], "u": 0.5}, {"id": "different_textures", "name": "Different textures", "w": 900, "h": 675, "k": 4, "p": [["granite, rough speckled brown and gray surface, scattered throughout the image", 71.6], ["slate, smooth dark gray layered surface, scattered throughout the image", 26.3], ["sandstone, rough orange-brown granular surface, scattered throughout the image", 1.0], ["quartzite, smooth light gray surface, scattered throughout the image", 0.1]], "g": [], "u": 1.0}, {"id": "multiple_textures", "name": "Multiple textures", "w": 900, "h": 505, "k": 4, "p": [["granite, speckled gray and white with rough, granular surface, foreground cluster", 48.6], ["volcanic rock, dark brown with porous, pitted surface, right side", 39.5], ["sedimentary rock, layered orange and gray with striated, smooth surface, left side", 8.8], ["slate, dark gray with flat, smooth surface, center", 1.1]], "g": [], "u": 2.0}, {"id": "many_textures", "name": "Many textures", "w": 457, "h": 402, "k": 6, "p": [["patchwork quilt, colorful fabric squares with varied patterns and stitching, top-left", 55.7], ["patchwork quilt, floral patterned fabric with pink flowers and green leaves, top-center", 20.4], ["patchwork quilt, houndstooth patterned fabric with black and white check, center", 13.1], ["patchwork quilt, solid red fabric with vertical ribbed texture, center-right", 0.7], ["patchwork quilt, solid green fabric with diagonal weave pattern, left-center", 0.0], ["patchwork quilt, striped fabric with blue and white horizontal stripes, center", 8.5], ["patchwork quilt, solid red fabric with textured knit pattern, right-center", null], ["patchwork quilt, solid beige fabric with woven texture, right", null], ["patchwork quilt, blue and white checkered fabric with small squares, bottom-right", null], ["patchwork quilt, solid dark purple fabric with woven texture, bottom-center", null], ["patchwork quilt, solid beige fabric with woven texture, bottom-left", null], ["patchwork quilt, solid yellow fabric with woven texture, left", null]], "g": [], "u": 1.6}];const STATS={"n": 9, "kp": 3.2};
+const PAL=[[0,114,178],[0,158,115],[204,121,167],[240,228,66],[86,180,233],[120,94,240],[220,50,47],[154,205,50]];
+const col=k=>`rgb(${PAL[(k-1)%PAL.length].join(',')})`;
+const S=30, $=s=>document.querySelector(s);
+let ALPHA=.5, labCache=new Map();
+
+$('#stats').innerHTML=[[STATS.n,'test images'],[STATS.kp,'mean regions found']]
+  .map(([v,k])=>`<div class="stat"><span class="v">${v}</span><span class="k">${k}</span></div>`).join('');
+
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function hi(s,q){s=esc(s);if(!q)return s;const i=s.toLowerCase().indexOf(q);return i<0?s:s.slice(0,i)+'<mark>'+s.slice(i,i+q.length)+'</mark>'+s.slice(i+q.length)}
+function regs(list,q){return list.map(([d,a],i)=>{const c=d.indexOf(',');const nm=c<0?d:d.slice(0,c),rest=c<0?'':d.slice(c);
+  return `<li data-k="${i+1}"${a===null?' class="miss"':''}><span class="sw" style="background:${col(i+1)}">${i+1}</span><span><span class="nm">${hi(nm,q)}</span>${hi(rest,q)}</span><span class="ar">${a===null?"no mask":a+"%"}</span></li>`}).join('')}
+
+function card(c,q){
+  const el=document.createElement('article');el.className='card';el.style.setProperty('--ar',`${c.w}/${c.h}`);
+  el.innerHTML=`<div class="card-h"><span class="id" style="font:600 17px/1.3 var(--display)">${esc(c.name)}</span><span class="meta">
+    <span class="pill">K = ${c.k} regions</span>${c.p.length>c.k?`<span class="pill">${c.p.length} descriptions</span>`:""}</span></div>
+  <div class="panels">
+    <figure><figcaption>Image</figcaption><img loading="lazy" src="img/${c.id}.jpg" alt="${c.id}" width="${c.w}" height="${c.h}"></figure>
+    <figure class="det"><figcaption>Detecture overlay + descriptions</figcaption><canvas data-src="pred" aria-label="Detecture segmentation overlay"></canvas>
+      <ol class="regs">${regs(c.p,q)}</ol>${c.p.length>c.k?`<div class="note">Descriptions ${c.k+1}–${c.p.length} have no mask: the model has ${c.k} mask slots.</div>`:""}${c.u>=1?`<div class="note">${c.u}% unassigned (grey)</div>`:''}</figure>
+
+  </div>`;
+  el._c=c;return el;
+}
+
+function loadLab(src,id){const key=src+'/'+id;if(labCache.has(key))return labCache.get(key);
+  const p=new Promise(res=>{const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;
+    const x=cv.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,im.width,im.height).data;const L=new Uint8Array(im.width*im.height);
+    for(let i=0;i<L.length;i++)L[i]=Math.round(d[i*4]/S);res({L,w:im.width,h:im.height})};im.src=`${src}/${id}.png`});
+  labCache.set(key,p);return p}
+function loadImg(id){return new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.src=`img/${id}.jpg`})}
+
+async function setup(cv,c){
+  const [lab,img]=await Promise.all([loadLab(cv.dataset.src,c.id),loadImg(c.id)]);
+  const up=Math.max(2,Math.ceil(640/lab.w));cv.width=lab.w*up;cv.height=lab.h*up;
+  const off=document.createElement('canvas');off.width=lab.w;off.height=lab.h;
+  cv._s={lab,img,off,up,k:0};draw(cv);
+  const li=[...cv.parentElement.querySelectorAll('li')];
+  const set=k=>{if(cv._s.k===k)return;cv._s.k=k;draw(cv);li.forEach(l=>l.classList.toggle('on',+l.dataset.k===k))};
+  li.forEach(l=>{l.addEventListener('mouseenter',()=>set(+l.dataset.k));l.addEventListener('mouseleave',()=>set(0))});
+  cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();const x=Math.floor((e.clientX-r.left)/r.width*lab.w),y=Math.floor((e.clientY-r.top)/r.height*lab.h);
+    set(lab.L[y*lab.w+x]||0)});
+  cv.addEventListener('mouseleave',()=>set(0));
+  li.forEach(l=>l.addEventListener('click',()=>set(cv._s.k===+l.dataset.k?0:+l.dataset.k)));
+  cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect();const x=Math.floor((e.clientX-r.left)/r.width*lab.w),y=Math.floor((e.clientY-r.top)/r.height*lab.h);
+    const v=lab.L[y*lab.w+x]||0;set(cv._s.k===v?0:v)});
+}
+function draw(cv){
+  const {lab,img,off,up,k}=cv._s,{L,w,h}=lab,x=off.getContext('2d'),id=x.createImageData(w,h),d=id.data;
+  for(let i=0;i<L.length;i++){const l=L[i],o=i*4;const yy=(i/w)|0,xx=i%w;
+    const edge=(xx<w-1&&L[i+1]!==l)||(yy<h-1&&L[i+w]!==l)||(xx>0&&L[i-1]!==l)||(yy>0&&L[i-w]!==l);
+    if(edge&&(!k||l===k||L[i+1]===k||L[i+w]===k||L[i-1]===k||L[i-w]===k)){d[o]=d[o+1]=d[o+2]=255;d[o+3]=235;continue}
+    if(l===0){d[o]=d[o+1]=d[o+2]=128;d[o+3]=k?60:150;continue}
+    const p=PAL[(l-1)%PAL.length];d[o]=p[0];d[o+1]=p[1];d[o+2]=p[2];
+    d[o+3]=Math.round(255*(k?(l===k?Math.max(ALPHA,.55):0):ALPHA))}
+  x.putImageData(id,0,0);
+  const g=cv.getContext('2d');g.imageSmoothingEnabled=true;g.drawImage(img,0,0,cv.width,cv.height);
+  g.imageSmoothingEnabled=false;
+  if(k){ // dim everything outside the hovered region
+    const dm=x.createImageData(w,h),dd=dm.data;for(let i=0;i<L.length;i++){if(L[i]!==k){dd[i*4+3]=140}}
+    const t=document.createElement('canvas');t.width=w;t.height=h;t.getContext('2d').putImageData(dm,0,0);g.drawImage(t,0,0,cv.width,cv.height)}
+  g.drawImage(off,0,0,cv.width,cv.height);
+}
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){io.unobserve(e.target);
+  e.target.querySelectorAll('canvas').forEach(cv=>setup(cv,e.target._c))}}),{rootMargin:'600px'});
+
+function render(){const g=$('#grid');CARDS.forEach(c=>{const el=card(c,'');g.appendChild(el);io.observe(el)})}
+render();
+</script>
+</body>
+</html>
